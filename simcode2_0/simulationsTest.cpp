@@ -7,7 +7,8 @@
 
 
 using namespace std;
-
+int getRecordSim(char * relName);
+int getFirstBlockOfRec(char * relName);
 
 
 /****************************************Static Buffer**************************************************/
@@ -17,7 +18,7 @@ using namespace std;
 
 BlockBuffer::BlockBuffer(int blockNum){
 
-cout <<"Inside BlockBuffer(int blockNum) constructor\n";
+//cout <<"Inside BlockBuffer(int blockNum) constructor\n";
 
 // set the blockNum field of the object to input argument.
 this->blockNum = blockNum;
@@ -27,7 +28,7 @@ this->blockNum = blockNum;
 /***To be updated: make it camel case***/
 getBlock();
 
-cout <<"Exiting BlockBuffer(int blockNum) constructor\n";
+//cout <<"Exiting BlockBuffer(int blockNum) constructor\n";
 }
 
 BlockBuffer::BlockBuffer(char blockType){
@@ -50,10 +51,10 @@ this->blockNum = getFreeBlock(type);
 unsigned char * BlockBuffer::getBufferPtr(){
 	//find the buffer index of the block using getBlock()
 	
-	cout <<"Entering getBufferPtr\n"; 
+	//cout <<"Entering getBufferPtr\n"; 
 	int bufferIndex = getBlock();
 	
-	cout <<"Exiting getBufferPtr "<<bufferIndex<<"\n"; 
+	//cout <<"Exiting getBufferPtr "<<bufferIndex<<"\n"; 
 	// return the pointer to this buffer (blocks[bufferIndex]).
 	return StaticBuffer::blocks[bufferIndex];
 }
@@ -81,7 +82,7 @@ int BlockBuffer::getBlock(){
      //check whether the block is already present in the buffer using StaticBuffer.getBufferNum() .
 		int bufferIndex = StaticBuffer::getBufferNum(this->blockNum);
 		
-		cout <<"Inside getBlock() bufferIndex "<< bufferIndex<<endl;
+		////cout <<"Inside getBlock() bufferIndex "<< bufferIndex<<endl;
 		
      //if present, set the timestamp of the corresponding buffer to 0 and increment the timpestamps of all other occupied buffers in the BufferMetaInfo.
      if(bufferIndex != FAILURE){
@@ -97,32 +98,32 @@ int BlockBuffer::getBlock(){
      else {
 
      	bufferIndex = StaticBuffer::getFreeBuffer(this->blockNum);
-     	cout <<"Loaded to buffer " <<bufferIndex<<endl;
+     	//cout <<"Loaded to buffer " <<bufferIndex<<endl;
      	Disk::readBlock((void *)StaticBuffer::blocks[bufferIndex],this->blockNum);
      }
-   cout <<"Exiting getBlock()\n";
+   ////cout <<"Exiting getBlock()\n";
    
    return bufferIndex;
 }
 
 int BlockBuffer::getFreeBlock(int blockType){
-	cout <<"Entering getFreeBlock\n";
+	//cout <<"Entering getFreeBlock\n";
 //iterate through the StaticBuffer.blockAllocMap and find the index of a free block in the Disk::
 	this->blockNum=-1;
 	for(int i=0;i<8192;++i)
 		if(((int32_t)(StaticBuffer::blockAllocMap[i]))==myUNUSED){
-		    cout<<(int32_t)(StaticBuffer::blockAllocMap[i])<<endl;
+		    //cout<<(int32_t)(StaticBuffer::blockAllocMap[i])<<endl;
 			this->blockNum = i;
 			break;
 		}
-		cout<<this->blockNum<<endl;
+		//cout<<this->blockNum<<endl;
 	
    
 //if no block is free, return FAILURE.
 	if(this->blockNum == -1)
 		return FAILURE;
    
-   cout<<"Current blockNum "<<this->blockNum<<endl;
+ //  cout<<"Current blockNum "<<this->blockNum<<endl;
 //find a free buffer using StaticBuffer.getFreeBuffer() 
 	int bufferIndex = StaticBuffer::getFreeBuffer(this->blockNum);
 
@@ -132,7 +133,7 @@ int BlockBuffer::getFreeBlock(int blockType){
 //update the block type of the block to the input block type using Blockbuffer.setBlockType().
 	setBlockType(blockType);
 	
-   cout <<"Exiting getFreeBlock "<<this->blockNum<<" "<<blockNum<<" "<<bufferIndex<<"\n";
+   ////cout <<"Exiting getFreeBlock "<<this->blockNum<<" "<<blockNum<<" "<<bufferIndex<<"\n";
 //return block number of the free block.
 	return this->blockNum;
 
@@ -156,7 +157,7 @@ unsigned char * startOfBuffer = StaticBuffer::blocks[bufferIndex];
 }
 
 void BlockBuffer::setBlockType(int blockType){
-cout <<"Entering setBlockType\n";		
+//cout <<"Entering setBlockType\n";		
 //find the starting address of the buffer using BlockBuffer.getBufferPtr()
 unsigned char * startOfBuffer = getBufferPtr();
 
@@ -167,7 +168,7 @@ unsigned char * startOfBuffer = getBufferPtr();
 StaticBuffer::blockAllocMap[this->blockNum] = blockType;
 StaticBuffer::setDirtyBit(this->blockNum);
 	
-cout <<"Exiting setBlockType\n";
+//cout <<"Exiting setBlockType\n";
 }
 
 
@@ -176,12 +177,12 @@ RecBuffer::RecBuffer(int blockNum) : BlockBuffer(blockNum){}
 RecBuffer::RecBuffer() : BlockBuffer('R'){}
 
 void RecBuffer::getSlotMap(unsigned char *slotMap){
-	cout <<"Entering getSlotMap\n";
+	//cout <<"Entering getSlotMap\n";
 	unsigned char *bufferPtr = getBufferPtr();
 	int numOfSlots=*((int32_t*) (bufferPtr + 6*4));
 	memcpy(slotMap, bufferPtr + 32, numOfSlots);
 	
-	cout <<"Exiting getSlotMap\n";
+	//cout <<"Exiting getSlotMap\n";
 } 
 void RecBuffer::setSlotMap(unsigned char *slotMap){
 	unsigned char *bufferPtr = getBufferPtr();
@@ -196,7 +197,7 @@ void RecBuffer::setSlotMap(unsigned char *slotMap){
 
 int RecBuffer::getRecord(union Attribute *rec,int slotNum){ 
 
-	cout <<"Entering getRecord\n";
+	//cout <<"Entering getRecord\n";
 	unsigned char* bufferPtr = getBufferPtr();
 	int numOfAttrib=*((int32_t*) (bufferPtr + 5*4));
 	int numOfSlots=*((int32_t*) (bufferPtr + 6*4));
@@ -210,19 +211,19 @@ int RecBuffer::getRecord(union Attribute *rec,int slotNum){
 	
 	memcpy((void*)rec, (void*)(bufferPtr + 32 + numOfSlots + (slotNum*numOfAttrib)*ATTR_SIZE), numOfAttrib*ATTR_SIZE);
 	
-	cout <<"Exiting getRecord with blockNum "<<this->blockNum<<endl;
+	//cout <<"Exiting getRecord with blockNum "<<this->blockNum<<endl;
 	return SUCCESS;
 	
 }
 
 int RecBuffer::setRecord(union Attribute *rec,int slotNum){  //return type to be updated in the code 
 
-	cout <<"Entering setRecord\n";
+	//cout <<"Entering setRecord\n";
 	unsigned char* bufferPtr = getBufferPtr();
 	int numOfAttrib=*((int32_t*) (bufferPtr + 5*4));
 	int numOfSlots=*((int32_t*) (bufferPtr + 6*4));
 	
-	cout <<"Attr && Slots "<<numOfAttrib<<" "<<numOfSlots<<"\n";
+	//cout <<"Attr && Slots "<<numOfAttrib<<" "<<numOfSlots<<"\n";
 	if(slotNum < 0 || slotNum > numOfSlots - 1)
 		return E_OUTOFBOUND;
 	
@@ -231,7 +232,7 @@ int RecBuffer::setRecord(union Attribute *rec,int slotNum){  //return type to be
 	memcpy((void*)(bufferPtr + 32 + numOfSlots +(slotNum*numOfAttrib)*ATTR_SIZE), (void*)rec, numOfAttrib*ATTR_SIZE);
 	
 	StaticBuffer::setDirtyBit(this->blockNum);//update dirty bit
-	cout <<"Exiting setRecord "<<numOfAttrib<<" "<<numOfSlots<<"\n";
+	//cout <<"Exiting setRecord "<<numOfAttrib<<" "<<numOfSlots<<"\n";
 	return SUCCESS;
 }
 
@@ -364,36 +365,47 @@ struct leafIndexBlock {
 
 int getFormatString(char* relationName, char *format)
 {
-    int blockNum=5,len =0;
-    do{
-	class RecBuffer *attrCat= new RecBuffer(blockNum);
-	union Attribute *attrCatAttrs = new union Attribute[6];
-	struct HeadInfo * attrCatHead = new struct HeadInfo ();
-	unsigned char slotMap[20];
-	attrCat->getSlotMap(slotMap);
-	int i;
-	for(i=0;i<20;i++)
-	    if(slotMap[i]=='1')
-	    {
-	        attrCat->getRecord(attrCatAttrs,i);
-	        if(strcmp(attrCatAttrs[0].strval,relationName )==0)
+    if(strcmp(relationName,"relationCat")==0)
+        strcpy(format,"siiiii");
+    else if(strcmp(relationName,"attributeCat")==0)
+        strcpy(format,"sssiii");
+    else{
+        int blockNum=5,len =0;
+        do{
+	    class RecBuffer *attrCat= new RecBuffer(blockNum);
+	    union Attribute *attrCatAttrs = new union Attribute[6];
+	    struct HeadInfo * attrCatHead = new struct HeadInfo ();
+	    unsigned char slotMap[20];
+	    attrCat->getSlotMap(slotMap);
+	    int i;
+	    //cout <<"loop start\n";
+	    for(i=0;i<20;i++)
+	        if(slotMap[i]=='1')
 	        {
-	            if(strcmp(attrCatAttrs[2].strval,"String")==0)
-	                format[len++]='s';
-	            else if(strcmp(attrCatAttrs[2].strval,"Integer")==0)
-	                format[len++]='i';
-	            else
-	                format[len++]='f';
+	            attrCat->getRecord(attrCatAttrs,i);
+	            if(strcmp(attrCatAttrs[0].strval,relationName )==0)
+	            {
+	                if(strcmp(attrCatAttrs[2].strval,"String")==0)
+	                    format[len++]='s';
+	                else if(strcmp(attrCatAttrs[2].strval,"Integer")==0)
+	                    format[len++]='i';
+	                else
+	                    format[len++]='f';
+	            }
 	        }
+	    //cout <<"loop end\n";
+	    attrCat->getHeader(attrCatHead);
+	    blockNum = attrCatHead->rblock;
+	
+	    //getRecordSim((char*)"attributeCat");
+	    //cout << "Format blockNum "<< blockNum<<endl;
+	    }while(blockNum!=-1);
+	    format[len]='\0';
 	    }
-	attrCat->getHeader(attrCatHead);
-	blockNum = attrCatHead->rblock;
-	}while(blockNum!=-1);
-	format[len]='\0';
 	return 1;
 }
 
-int setRecordSim(int numAttr, char * format,...) { 
+int setRecordSim(int numAttr, char * format, int read, ...) { 
 //returns the blockNum in which the record is stored
     
     //testing RecBuffer 
@@ -418,19 +430,35 @@ int setRecordSim(int numAttr, char * format,...) {
 
     union Attribute *recAttrs = new union Attribute[numAttr];
      
-    va_list args;
-	va_start(args,format);
-	for(int i =0;format[i]!='\0';++i){
-		if(format[i]=='f')
-			recAttrs[i].fval = va_arg(args, double);
-		else if(format[i]=='i')
-			recAttrs[i].ival = va_arg(args, int);
-		else
-			strcpy(recAttrs[i].strval, va_arg(args, char*));
-	}
+     if(read==0)
+     {
+        va_list args;
+        va_start(args,read);
+	    for(int i =0;format[i]!='\0';++i){
+		    if(format[i]=='f')
+			    recAttrs[i].fval = va_arg(args, double);
+		    else if(format[i]=='i')
+			    recAttrs[i].ival = va_arg(args, int);
+		    else
+			    strcpy(recAttrs[i].strval, va_arg(args, char*));
+	    }
 	
-	va_end(args);
-    cout <<"set Record\n";
+	    va_end(args);
+    }
+    else
+    {
+        cout<<"Enter the first record :\n";
+        for(int i=0;i<numAttr; i++)
+        {
+            cout<<"Enter attribute "<<i+1<<" : ";
+            if(format[i]=='s')
+                cin>>recAttrs[i].strval;
+            else if(format[i]=='i')
+                cin>>recAttrs[i].ival;
+            else
+                cin>>recAttrs[i].fval;
+        }
+    }
     
     unsigned char slotMap[recHead-> numSlots];
     for(int i=1; i<recRetHead-> numSlots; i++)
@@ -441,49 +469,165 @@ int setRecordSim(int numAttr, char * format,...) {
 	return recRec->getBlockNum();
 }
 
-int getRecordSim(int blockNum)
+//int getRecordSim(int blockNum)
+int getRecordSim(char *relationName)
 {
     
+    int blockNum = getFirstBlockOfRec(relationName);
     
+    do{
    //StaticBuffer staticBuffer;
-    class RecBuffer *recBuffer = new RecBuffer(blockNum);
-    unsigned char *slotMap = new unsigned char; 
-    struct HeadInfo * headInfo = new struct HeadInfo ();
-    
-    recBuffer->getSlotMap(slotMap);
-	recBuffer->getHeader(headInfo);
-    cout <<"Head attributes\n";
-	cout<<headInfo-> blockType<<endl;
-	cout<<headInfo-> pblock<<endl;
-	cout<<headInfo-> lblock<<endl;//need to be changed
-	cout<<headInfo-> rblock<<endl;//need to be changed
-	cout<<headInfo-> numEntries<<endl;
-	cout<<"NumberOfAttributes"<<headInfo-> numAttrs<<endl; 
-	cout<<headInfo-> numSlots<<endl;
-	cout<<headInfo-> reserved<<endl;
-    
-    cout<<endl<<"Inside get record sim"<<endl;
-    
-    for(int i=0; i<headInfo-> numSlots; i++)
-        if((int)slotMap[i]=='1')
-        {
-            union Attribute *rec = new union Attribute[headInfo->numAttrs];
-            recBuffer->getRecord(rec,i);
-            for(int j=0; j<headInfo->numAttrs ; j++)
-                {
+        class RecBuffer *recBuffer = new RecBuffer(blockNum);
+        unsigned char *slotMap = new unsigned char; 
+        struct HeadInfo * headInfo = new struct HeadInfo ();
+        
+        recBuffer->getSlotMap(slotMap);
+	    recBuffer->getHeader(headInfo);
+        cout <<"Head attributes\n";
+	    cout<<headInfo-> blockType<<endl;
+	    cout<<headInfo-> pblock<<endl;
+	    cout<<headInfo-> lblock<<endl;//need to be changed
+	    cout<<headInfo-> rblock<<endl;//need to be changed
+	    cout<<headInfo-> numEntries<<endl;
+	    cout<<headInfo-> numAttrs<<endl; 
+	    cout<<headInfo-> numSlots<<endl;
+	    //cout<<headInfo-> reserved<<endl;
+        
+        //cout<<endl<<"Inside get record sim"<<endl;
+        
+	    char format[125];
+	    getFormatString(relationName, format);
+        cout <<"Table Contents\n";	
+        for(int i=0; i<headInfo-> numSlots; i++)
+            if((int)slotMap[i]=='1')
+            {
+                cout<<"Record "<<i<<":"<<endl;
+                union Attribute *rec = new union Attribute[headInfo->numAttrs];
+                recBuffer->getRecord(rec,i);
+                for(int j=0; j<headInfo->numAttrs ; j++)
+                    {if(format[j]=='s')
+                        cout<<rec[j].strval<<endl;
+                     else if(format[j]=='i')
+                        cout<<rec[j].ival<<endl;
+                     else if(format[j]=='f')
+                        cout<<rec[j].fval<<endl;
+                    
+                    
+                   // cout<<rec[j].strval<<endl;cout<<rec[j].ival<<endl;
+                   }
                 
-                cout<<rec[j].strval<<endl;cout<<rec[j].ival<<endl;}
-            
-        }
+            }
+		
+		    blockNum = headInfo->rblock;
            
+    }while(blockNum!=-1);
     return 0;
 }
 
-int addRecordSim(int blockNum, int numAttr, char * format,...)
+int getFirstBlockOfRec(char * relName) {
+	union Attribute *relCatAttrs = new union Attribute[6];
+	struct HeadInfo * relCatHead = new struct HeadInfo ();
+	
+	int blockNum = 4;
+	
+	do{
+	
+		class RecBuffer * relCat= new RecBuffer(blockNum);
+		unsigned char relCatSlotMap[20];
+		relCat ->getSlotMap(relCatSlotMap);
+	    
+
+		for(int i=0;i<20;++i){
+			if(relCatSlotMap[i]=='1'){
+				relCat->getRecord(relCatAttrs,i);
+				if(strcmp(relCatAttrs[0].strval,relName)==0){
+					return relCatAttrs[3].ival;
+				}
+			}
+		}
+		
+		//relCatHead = new struct HeadInfo ();
+		relCat->getHeader(relCatHead);
+		
+		blockNum = relCatHead->rblock;
+		
+	}while(blockNum!=-1);
+	return -1;
+}
+int getLastBlockOfRec(char * relName) {
+	//cout <<"Entering getLastBlockOfRec"<<endl;
+	
+	union Attribute *relCatAttrs = new union Attribute[6];
+	struct HeadInfo * relCatHead = new struct HeadInfo ();
+	
+	int blockNum = 4;
+	
+	do{
+	
+		class RecBuffer * relCat= new RecBuffer(blockNum);
+		unsigned char relCatSlotMap[20];
+		relCat ->getSlotMap(relCatSlotMap);
+	
+
+		for(int i=0;i<20;++i){
+			if(relCatSlotMap[i]=='1'){
+				relCat->getRecord(relCatAttrs,i);
+				if(strcmp(relCatAttrs[0].strval,relName)==0){
+					//cout <<"Exiting getLastBlockOfRec"<<endl;
+					return relCatAttrs[4].ival;
+				}
+			}
+		}
+		
+		//relCatHead = new struct HeadInfo ();
+		relCat->getHeader(relCatHead);
+		
+		blockNum = relCatHead->rblock;
+		
+	}while(blockNum!=-1);
+	return -1;
+}
+
+int getNumAttrsOfRec(char * relName) {
+	
+	union Attribute *relCatAttrs = new union Attribute[6];
+	struct HeadInfo * relCatHead = new struct HeadInfo ();
+	
+	int blockNum = 4;
+	
+	do{
+	
+		class RecBuffer *relCat= new RecBuffer(blockNum);
+		unsigned char relCatSlotMap[20];
+		relCat ->getSlotMap(relCatSlotMap);
+	
+
+		for(int i=0;i<20;++i){
+			if(relCatSlotMap[i]=='1'){
+				relCat->getRecord(relCatAttrs,i);
+				if(strcmp(relCatAttrs[0].strval,relName)==0){
+					return relCatAttrs[1].ival;
+				}
+			}
+		}
+		
+		//relCatHead = new struct HeadInfo ();
+		relCat->getHeader(relCatHead);
+		
+		blockNum = relCatHead->rblock;
+		
+	}while(blockNum!=-1);
+	return -1;
+}
+
+int addRecordSim(char * relName,int read, ...)
 {   
-   //TODO: uncomment this
-   //StaticBuffer staticBuffer;
-    
+    int blockNum = getLastBlockOfRec(relName);
+    int numAttr = getNumAttrsOfRec(relName);
+    char format[125];
+	getFormatString((char *)relName, format);
+	//cout<<"\n\n\n"<<format<<endl<<endl;
+	
     class RecBuffer *recBuffer = new RecBuffer(blockNum);
     struct HeadInfo * headInfo = new struct HeadInfo ();
     unsigned char *slotMap = new unsigned char; 
@@ -499,20 +643,38 @@ int addRecordSim(int blockNum, int numAttr, char * format,...)
             
     union Attribute *recAttrs = new union Attribute[5];
         va_list args;
-	va_start(args,format);
-	for(int i =0;format[i]!='\0';++i){
-		if(format[i]=='f')
-			recAttrs[i].fval = va_arg(args, double);
-		else if(format[i]=='i')
-			recAttrs[i].ival = va_arg(args, int);
-		else
-			strcpy(recAttrs[i].strval, va_arg(args, char*));
-	}
+	va_start(args,read);
+     if(read==0)
+     {
+        va_list args;
+        va_start(args,read);
+	    for(int i =0;format[i]!='\0';++i){
+		    if(format[i]=='f')
+			    recAttrs[i].fval = va_arg(args, double);
+		    else if(format[i]=='i')
+			    recAttrs[i].ival = va_arg(args, int);
+		    else
+			    strcpy(recAttrs[i].strval, va_arg(args, char*));
+	    }
 	
-	va_end(args);
-    
+	    va_end(args);
+    }
+    else
+    {
+        cout<<"Enter the record :\n";
+        for(int j=0;j<numAttr; j++)
+        {
+            cout<<"Enter attribute "<<j+1<<" : ";
+            if(format[j]=='s')
+                cin>>recAttrs[j].strval;
+            else if(format[j]=='i')
+                cin>>recAttrs[j].ival;
+            else
+                cin>>recAttrs[j].fval;
+        }
+    }
+	
 
-    
 	recBuffer->setRecord(recAttrs, i);
 	
     struct HeadInfo * newHead = new struct HeadInfo ();
@@ -535,10 +697,10 @@ int replacementSim()
     for(int i=0; i<35; i++)
     {
      cout<<"\n\n\n\n------Block "<<i+4<<" ---------------\n";
-        setRecordSim(5,(char *)"ssiss","Appu", "B160116CS", 21, "F", "rock on");
+        setRecordSim(5,(char *)"ssiss",0, "Appu", "B160116CS", 21, "F", "rock on");
        
 	    if(i==30)
-	     addRecordSim(5,5,(char *)"ssiss","Suku", "B160483CS", 21, "M", "being suku");
+	     addRecordSim((char *)"Student",0,"Suku", "B160483CS", 21, "M", "being suku");
 		
     }  
 }
@@ -763,8 +925,8 @@ int getLeafEntry(int blockNum, char f)
 
 int setRelationCatRecord()
 {
-    setRecordSim(6,(char *)"siiiii", "relationCat", 6, 2,4, 4, 20);
-    addRecordSim(4, 6,(char *)"siiiii", "attributeCat", 6, 12, 5, 5, 20 );
+    setRecordSim(6,(char *)"siiiii",0, "relationCat", 6, 2,4, 4, 20);
+    addRecordSim((char *)"relationCat",0, "attributeCat", 6, 12, 5, 5, 20 );
     return 1;
 }
 int updateRelationCat(char * relName)
@@ -811,7 +973,7 @@ void addEntryRelationCat(char * relName, int numAttrs, int numRec, int firstBloc
 	relCat -> getHeader(relCatHead);
 	
 	int blockNum = relCatAttrs[4].ival;//insertion to be done in the last block
-	cout<<"\n\nPrinting Relational Catalog\n"<<blockNum;
+	//cout<<"\n\nPrinting Relational Catalog\n"<<blockNum;
 	//getRecordSim(4);
 	
 	class RecBuffer *currRec= new RecBuffer(blockNum);
@@ -826,12 +988,12 @@ void addEntryRelationCat(char * relName, int numAttrs, int numRec, int firstBloc
 	recAttrs[3].ival = firstBlock;
 	recAttrs[4].ival = lastBlock;
 	recAttrs[5].ival = slotsPerBlock;
-	
+	updateRelationCat((char*)"relationCat");
 	struct HeadInfo * recHead = new struct HeadInfo ();
 	currRec-> getHeader(recHead);
 	for(int i=0;i<20;++i){
 		if(recSlotMap[i]=='0'){
-			cout<<"Found free slot\n";
+			//cout<<"Found free slot\n";
 			currRec->setRecord(recAttrs, i);
 			
 			recHead-> numEntries++;
@@ -844,7 +1006,7 @@ void addEntryRelationCat(char * relName, int numAttrs, int numRec, int firstBloc
 		}
 	}
 	//the last block was full-allot a new rec block for relation catalog
-	int lastBlockNum = setRecordSim(6, (char *)"siiiii", relName, numAttrs, numRec, firstBlock, lastBlock, slotsPerBlock);
+	int lastBlockNum = setRecordSim(6, (char *)"siiiii", 0, relName, numAttrs, numRec, firstBlock, lastBlock, slotsPerBlock);
 	
 	//TODO:set left block
 	
@@ -859,19 +1021,19 @@ void addEntryRelationCat(char * relName, int numAttrs, int numRec, int firstBloc
 }
 int setAttributeCatRecord()
 {
-    setRecordSim(6, (char *)"sssiii", "relationCat", "relation name", "string", -1, -1, 0 );   
-    addRecordSim(5, 6, (char *)"sssiii", "relationCat", "#attributes", "int", -1, -1, 1 );   
-    addRecordSim(5, 6, (char *)"sssiii", "relationCat", "#records", "int", -1, -1, 2 );   
-    addRecordSim(5, 6, (char *)"sssiii", "relationCat", "first block", "int", -1, -1, 3 );   
-    addRecordSim(5, 6, (char *)"sssiii", "relationCat", "last block", "int", -1, -1, 4 );   
-    addRecordSim(5, 6, (char *)"sssiii", "relationCat", "#slots per block", "int", -1, -1, 5 );   
+    setRecordSim(6, (char *)"sssiii",0, "relationCat", "relation name", "string", -1, -1, 0 );   
+    addRecordSim((char *)"attributeCat", 0, "relationCat", "#attributes", "int", -1, -1, 1 );   
+    addRecordSim((char *)"attributeCat", 0, "relationCat", "#records", "int", -1, -1, 2 );   
+    addRecordSim((char *)"attributeCat", 0, "relationCat", "first block", "int", -1, -1, 3 );   
+    addRecordSim((char *)"attributeCat", 0, "relationCat", "last block", "int", -1, -1, 4 );   
+    addRecordSim((char *)"attributeCat", 0, "relationCat", "#slots per block", "int", -1, -1, 5 );   
     
-    addRecordSim(5, 6, (char *)"sssiii", "attributeCat", "relation name", "string", -1, -1, 0 );
-    addRecordSim(5, 6, (char *)"sssiii", "attributeCat", "attribute name", "string", -1, -1, 1 );
-    addRecordSim(5, 6, (char *)"sssiii", "attributeCat", "attribute type", "string", -1, -1, 2 );
-    addRecordSim(5, 6, (char *)"sssiii", "attributeCat", "primary flag", "int", -1, -1, 3 );
-    addRecordSim(5, 6, (char *)"sssiii", "attributeCat", "root block", "int", -1, -1, 4 );
-    addRecordSim(5, 6, (char *)"sssiii", "attributeCat", "offset", "int", -1, -1, 5 );
+    addRecordSim((char *)"attributeCat", 0, "attributeCat", "relation name", "string", -1, -1, 0 );
+    addRecordSim((char *)"attributeCat", 0, "attributeCat", "attribute name", "string", -1, -1, 1 );
+    addRecordSim((char *)"attributeCat", 0, "attributeCat", "attribute type", "string", -1, -1, 2 );
+    addRecordSim((char *)"attributeCat", 0, "attributeCat", "primary flag", "int", -1, -1, 3 );
+    addRecordSim((char *)"attributeCat", 0, "attributeCat", "root block", "int", -1, -1, 4 );
+    addRecordSim((char *)"attributeCat", 0, "attributeCat", "offset", "int", -1, -1, 5 );
     return 1;
     
 }
@@ -900,6 +1062,7 @@ int addEntryAttributeCat(char *relationName, char *attributeName, char *attribut
 	attrCatAttrs[3].ival = primaryFlag;
 	attrCatAttrs[4].ival = -1;
 	attrCatAttrs[5].ival = offset;
+	updateRelationCat((char*)"attributeCat");
 	int i;
 	unsigned char slotMap[20];
 	attrCat -> getSlotMap(slotMap);
@@ -908,7 +1071,7 @@ int addEntryAttributeCat(char *relationName, char *attributeName, char *attribut
 	        break;
 	if(i==20)
 	{   
-	    int lastBlockNum = setRecordSim(6, (char *)"sssiii", relationName, attributeName, attributeType, primaryFlag, -1, offset);
+	    int lastBlockNum = setRecordSim(6, (char *)"sssiii",0, relationName, attributeName, attributeType, primaryFlag, -1, offset);
 	
 	    //TODO:set left block
 	
@@ -939,55 +1102,90 @@ int main()
     setRelationCatRecord();
     setAttributeCatRecord();
 	cout<<"\n\n\n**************INITIALISATIONS OVER**************\n\n\n";    
+	/*
+
+	getRecordSim((char*)"relationCat");
 	
-	
-	
-	int blockNum = setRecordSim(5,(char *)"ssiss","Appu", "B160116CS", 21, "F", "miles to go before i sleep");
+	int blockNum = setRecordSim(5,(char *)"ssiss",0,"Appu", "B160116CS", 21, "F", "miles to go before i sleep");
 	addEntryRelationCat((char *)"Student", 5, 1, blockNum, blockNum);
 	addEntryAttributeCat((char *)"Student", (char *)"Name", (char *)"String", -1, 0);
 	addEntryAttributeCat((char *)"Student", (char *)"Roll No", (char *)"String", -1, 1);
 	addEntryAttributeCat((char *)"Student", (char *)"Age", (char *)"Integer", -1, 2);
 	addEntryAttributeCat((char *)"Student", (char *)"Gender", (char *)"String", -1, 3);
 	addEntryAttributeCat((char *)"Student", (char *)"Status", (char *)"String", -1, 4);
-	getRecordSim(5);
-	cout<<endl<<endl<<"FORMAT";
-	char format[125];
-	getFormatString((char *)"Student", format);
-	cout<<format<<endl;
 	
-	
-/*	addRecordSim(blockNum,5,(char *)"ssiss","Vrindha", "B160228CS", 21, "F", "this too shall pass");
-	updateRelationCat((char *)"Student");
-		
-        cout <<"Relation catalog:"<<endl;
-        getRecordSim(4);
-	cout<<"SET RECORD SIMULATIONS OVER\n\n\n\n";*/
-	
-			/*
+	addRecordSim((char*)"Student", 0, "Vrindha", "B160228CS", 21, "F", "this too shall pass");	
+	addRecordSim((char*)"Student", 0, "Suku", "B160483CS", 21, "M", "being suku");
 
-/*	addRecordSim(4,5,(char *)"ssiss","Suku", "B160483CS", 21, "M", "being suku");
-	cout<<"ADDED 2nd RECORD\n\n\n\n";
-	addRecordSim(4,5,(char *)"ssiss","Vrindha", "B160228CS", 21, "F", "this too shall pass");
-	cout<<"ADDED 3rd RECORD\n\n\n\n";
-	getRecordSim(4);
-	cout<<"GET RECORD SIMULATIONS OVER\n\n\n\n";
-	replacementSim();	
-    union Attribute attribute;
-    strcpy(attribute.strval,"blah blah");
-    setInternalSim(-1,attribute, 's', -2);
-    strcpy(attribute.strval,"abc");
-    addInternalEntry(4,-2,attribute, 's', -3);
-    strcpy(attribute.strval,"def");
-    addInternalEntry(4,-3,attribute, 's', -1);
-    getInternalEntry(4, 's');
-   
-    strcpy(attribute.strval,"blah blah");
-    setLeafSim(1, 1, attribute, 's');
-    strcpy(attribute.strval,"abc");
-    addLeafEntry(4, 2, 2, attribute, 's');
-    strcpy(attribute.strval,"def");
-    addLeafEntry(4, 3, 2, attribute, 's');
-    getLeafEntry(4, 's'); */
-   
+
+	
+	
+	cout<<"\n\n\n**************RELATION CATALOG RECORDS**************\n\n\n";
+	getRecordSim((char *)"relationCat");
+	cout<<"\n\n\n**************ATTRIBUTE CATALOG RECORDS**************\n\n\n";
+	getRecordSim((char *)"attributeCat");
+	cout<<"\n\n\n**************STUDENT RECORDS**************\n\n\n";
+	getRecordSim((char *)"Student");
+	*/
+	
+	
+	char relationName[100];
+	int choice, numAttrs;
+	do
+	{   cout<<"1. Create a new relation.\n2. Add new record.\n3. Display relation.\n4. Display Relation Catalog. \n5. Display    Attribute Catalog\n6. Shut Down\n";
+	    cin>>choice;
+            
+            switch(choice) {
+                case 1:
+                     cout<<"Enter relation name: "; 
+	                 cin>>relationName;
+	                 cout<<"Enter number of attributes: "; 
+	                 cin>>numAttrs;
+	                 char format[125];
+	                 int i, blockNum;
+	                 for(i=0; i<numAttrs; i++)
+	                 {
+	                     char attrName[100], attrType[10];
+	                     cout<<"Enter attribute "<<i<<" name : "; 
+	                     cin>>attrName;
+	                     cout<<"Enter type of attribute "<<i<<"(String/Integer/Float) : "; 
+	                     cin>>attrType;
+	                     addEntryAttributeCat((char *)relationName, (char *)attrName, (char *)attrType, -1, i);
+	                     if(strcmp(attrType,"String")==0 )
+	                        format[i]='s';
+	                     else if(strcmp(attrType,"Integer")==0 )
+	                        format[i]='i';
+	                     else 
+	                        format[i]='f';
+	                 }
+	                 format[i]='\0';
+	                 cout<<"Enter 1st record";
+	                 blockNum = setRecordSim(numAttrs,(char *)format, 1);
+	                 addEntryRelationCat((char *)relationName, numAttrs, 1, blockNum, blockNum);
+	                 
+                    break;
+                case 2:
+                    cout<<"Enter relation name: "; 
+	                 cin>>relationName;
+	                 addRecordSim((char *)relationName,1);
+                    
+                    break;
+                case 3:
+                    cout<<"Enter relation name: "; 
+	                cin>>relationName;
+	                getRecordSim((char *)relationName);
+	                break;
+                case 4:
+                    getRecordSim((char *)"relationCat");
+	                break;
+                case 5:
+                    getRecordSim((char *)"attributeCat");
+	                break;
+
+            }	                 
+	
+	
+	}while(choice!=6);
+ 
 	return 0;
 }
