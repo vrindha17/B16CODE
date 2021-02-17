@@ -810,13 +810,7 @@ int addInternalEntry(int blockNum, int lchild, Attribute attrVal, char f, int rc
 	
 	struct InternalEntry *internalEntry = new struct InternalEntry();
 	internalEntry->lChild = lchild;
-	if(f=='s')
-	    strcpy(internalEntry->attrVal.strval, attrVal.strval);
-	else if(f=='i')
-	    internalEntry->attrVal.ival = attrVal.ival;
-	else
-	    internalEntry->attrVal.fval = attrVal.fval;
-	
+	internalEntry->attrVal = attrVal;
 	internalEntry->rChild = rchild;
 	
 	indexBlock->setEntry(internalEntry,headInfo-> numEntries-1);
